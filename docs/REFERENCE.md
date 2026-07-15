@@ -2,7 +2,7 @@
 
 ## Product role
 
-`whitebox-secure-scan` is a small local static secure-code review assistant. It finds suspicious security-sensitive code, records the relative path and line, explains the observed source/sink evidence, and produces review leads for an approved internal AI system or security engineer.
+`whitebox-secure-scan` is an offline white-box secure-code triage tool for penetration testers. It finds high-signal security-sensitive code, records the relative path and line, explains source/sink evidence, groups related instances, and produces reviewer guidance.
 
 It does not confirm exploitability, replace manual review, execute target code, access the network, upload source, or perform runtime testing.
 

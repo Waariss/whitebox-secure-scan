@@ -477,10 +477,13 @@ def run_version() -> int:
 def make_parser():
     parser = argparse.ArgumentParser(
         prog="whitebox-secure-scan",
-        description="Local static secure-code triage. No AI. No network. No source upload.",
+        description="Offline white-box secure-code triage for penetration testers. Read-only; no AI, network, or source upload.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
-    review = sub.add_parser("review", help="run the complete safe review workflow")
+    parser.usage = (
+        "whitebox-secure-scan {review,sample-unreported,compare,doctor,version,rules} ..."
+    )
+    review = sub.add_parser("review", help="run a white-box secure-code triage review")
     review.add_argument("repository")
     review.add_argument("--output", default="./whitebox-results")
     review.add_argument("--format", choices=["all", "markdown", "json", "sarif"], default="all")
@@ -607,6 +610,7 @@ def make_parser():
     sub._choices_actions[:] = [
         action for action in sub._choices_actions if action.dest not in hidden
     ]
+    sub.metavar = "{review,sample-unreported,compare,doctor,version,rules}"
     return parser
 
 

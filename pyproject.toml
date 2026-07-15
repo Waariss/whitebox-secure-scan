@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "whitebox-secure-scan"
-version = "0.4.0rc2"
-description = "Local static secure-code triage. No AI. No network. No source upload."
+version = "1.0.0"
+description = "Offline white-box secure-code triage for penetration testers."
 readme = "README.md"
 license = {file = "LICENSE"}
 keywords = ["security", "static-analysis", "secure-coding", "triage"]
 authors = [{name = "whitebox-secure-scan contributors"}]
-classifiers = ["Development Status :: 4 - Beta", "Programming Language :: Python :: 3", "License :: OSI Approved :: Apache Software License"]
+classifiers = ["Development Status :: 5 - Production/Stable", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3.11", "Programming Language :: Python :: 3.12", "License :: OSI Approved :: Apache Software License"]
 requires-python = ">=3.11"
 dependencies = ["PyYAML>=6.0", "jsonschema>=4.0"]
 
@@ -22,10 +22,10 @@ dev = ["pytest>=8", "pytest-cov>=5.0", "ruff>=0.6", "mypy>=1.10"]
 whitebox-secure-scan = "whitebox_secure_scan.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/example/whitebox-secure-scan"
-Repository = "https://github.com/example/whitebox-secure-scan"
-Issues = "https://github.com/example/whitebox-secure-scan/issues"
-Documentation = "https://github.com/example/whitebox-secure-scan#readme"
+Homepage = "https://github.com/Waariss/whitebox-secure-scan"
+Repository = "https://github.com/Waariss/whitebox-secure-scan"
+Issues = "https://github.com/Waariss/whitebox-secure-scan/issues"
+Documentation = "https://github.com/Waariss/whitebox-secure-scan#readme"
 
 [tool.setuptools.packages.find]
 where = ["src"]
