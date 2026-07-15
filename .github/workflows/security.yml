@@ -1,0 +1,10 @@
+name: security
+on: [push, pull_request]
+permissions: {contents: read}
+jobs:
+  source-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Synthetic credential shapes live only in isolated test fixtures.
+      - run: '! grep -R -n -E "AKIA[0-9A-Z]{16}|BEGIN (RSA|OPENSSH) PRIVATE KEY" --exclude-dir=.git --exclude-dir=tests .'

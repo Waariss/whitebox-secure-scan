@@ -1,0 +1,15 @@
+rules:
+  - id: WB.SECRET.HARDCODED
+    title: Hardcoded secret
+    description: Credential-like literal in source.
+    category: secrets
+    severity: high
+    confidence: 86
+    languages: [python, javascript, typescript, java, go]
+  - id: WB.EXEC.DYNAMIC
+    title: Dynamic execution
+    description: Dynamic or operating-system execution API.
+    category: command_execution
+    severity: high
+    confidence: 82
+    languages: [python, javascript, typescript, java, go]

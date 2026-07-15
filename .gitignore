@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+whitebox-scan-output/
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+.DS_Store
+whitebox-results*/
+.whitebox-secure-scan.yml.local

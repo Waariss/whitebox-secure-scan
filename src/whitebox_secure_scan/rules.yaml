@@ -1,0 +1,29 @@
+rules:
+  - id: WB.SECRET.HARDCODED
+    title: Hardcoded secret
+    description: Credential-like literal in source.
+    category: secrets
+    severity: high
+    confidence: 86
+    classification: high_confidence_candidate
+  - id: WB.EXEC.DYNAMIC
+    title: Dynamic execution
+    description: Dynamic or operating-system execution API.
+    category: command_execution
+    severity: high
+    confidence: 82
+    classification: high_confidence_candidate
+  - id: WB.SQL.RAW_CONSTRUCTION
+    title: Dynamic SQL construction
+    description: SQL appears to be built through interpolation or concatenation.
+    category: sql
+    severity: high
+    confidence: 80
+    classification: high_confidence_candidate
+  - id: WB.SSRF.OUTBOUND_REQUEST
+    title: Outbound request review
+    description: Outbound request requires source and destination validation review.
+    category: ssrf
+    severity: medium
+    confidence: 55
+    classification: review_lead
