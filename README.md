@@ -2,7 +2,7 @@
 
 `whitebox-secure-scan` is an offline, read-only white-box secure-code triage tool for penetration testers. It identifies high-signal security review leads, records precise file and line evidence, groups related instances into root causes, and provides reviewer guidance.
 
-It is designed to accelerate source-code review—not to replace a penetration tester, confirm exploitability automatically, or generate a final pentest report. Every candidate requires independent verification by an authorized security engineer.
+It is designed to accelerate source-code review not to replace a penetration tester, confirm exploitability automatically, or generate a final pentest report. Every candidate requires independent verification by an authorized security engineer.
 
 It scans Python 3.11+, JavaScript/TypeScript, Java, and Go locally. It does not import, execute, upload, or modify target code and does not contact package registries or external AI services during scans.
 
