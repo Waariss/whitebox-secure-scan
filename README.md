@@ -60,6 +60,21 @@ python -m pip install --upgrade whitebox-secure-scan
 
 The package supports Python 3.11 and newer. `uvx` and `pip` use the published PyPI package; no repository checkout is required for normal use.
 
+### Install with Homebrew — macOS
+
+The Formula is prepared for `Waariss/homebrew-tap` and will be available after
+that Formula is merged and its public installation is validated:
+
+```bash
+brew install waariss/tap/whitebox-secure-scan
+whitebox-secure-scan version
+whitebox-secure-scan doctor
+```
+
+The Homebrew Formula installs the core scanner without the optional `parsing`
+extra. Use the PyPI installation above when local Tree-sitter parser support is
+needed. See the [Homebrew distribution guide](https://github.com/Waariss/whitebox-secure-scan/blob/main/docs/HOMEBREW.md).
+
 ### Optional parsing dependencies
 
 The core scanner works without optional parsers. Install the local parsing extras when you want the additional parser support:
