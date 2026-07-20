@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "whitebox-secure-scan"
-version = "1.0.2"
+version = "1.1.0"
 description = "Offline white-box secure-code triage for penetration testers."
 readme = "README.md"
 license = {file = "LICENSE"}

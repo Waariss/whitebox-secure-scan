@@ -437,7 +437,11 @@ def scan(
     for file in files:
         if config.languages and file.language not in config.languages:
             continue
+        parsed = parse(file)
         for finding in analyze_file(file, config, framework):
+            if parsed.parser_used not in {"none", "lexical-fallback"}:
+                finding.parser_used = parsed.parser_used
+                finding.syntax_node_type = parsed.syntax_node_type
             finding.rule_family = (
                 finding.rule_id.split(".")[1] if "." in finding.rule_id else finding.rule_id
             )

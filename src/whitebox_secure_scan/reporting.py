@@ -73,6 +73,9 @@ def markdown(
     for heading, items in sections:
         out += [f"## {heading}", ""]
         for f in sorted(items, key=lambda x: (-x.confidence_score, x.file_path, x.start_line)):
+            evidence = (
+                f.evidence.replace("```", "``\u200b`") if f.evidence else "No snippet available."
+            )
             out += [
                 f"### {f.title}",
                 f"- **Severity:** {f.suggested_severity} | **Type:** {f.verdict_candidate} | **Confidence:** {f.confidence_score}",
@@ -84,7 +87,10 @@ def markdown(
                 f"- **Proof gaps:** {', '.join(f.proof_gaps) or 'None recorded.'}",
                 f"- **Counterevidence:** {', '.join(f.counterevidence) or 'None recorded.'}",
                 f"- **Reviewer action:** {f.recommended_verification_steps[0] if f.recommended_verification_steps else 'Trace the surrounding source-to-sink flow.'}",
-                f"- **Evidence:** `{f.evidence}`",
+                "- **Evidence:**",
+                "```text",
+                evidence,
+                "```",
                 "",
             ]
     out += ["## Root causes", ""]

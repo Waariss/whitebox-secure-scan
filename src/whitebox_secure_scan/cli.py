@@ -9,14 +9,17 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from . import __version__
-from .adapters import run_local_adapter
+from .adapters import import_result_file, run_local_adapter
 from .analyzer import scan
 from .correlation import correlate, summaries
+from .code_graph import build_code_graph, enrich_route
 from .config import ScanConfig, load_review_config, parse_csv
 from .detectors import detect_frameworks, detect_languages
 from .reporting import markdown, sarif, write_json
 from .repository import inventory_manifests, walk_repository
 from .rules import validate_rules
+from .parsers import parser_capabilities
+from .models import Finding
 
 OUTPUTS = [
     "inventory.json",
@@ -32,8 +35,27 @@ OUTPUTS = [
 ]
 
 
+def _lexical_path(path: Path) -> Path:
+    """Return an absolute path without resolving symlinks."""
+    path = path.expanduser()
+    return path if path.is_absolute() else Path.cwd() / path
+
+
+def _reject_symlink_components(path: Path) -> Path:
+    lexical = _lexical_path(path)
+    current = lexical
+    while True:
+        if current.is_symlink():
+            raise ValueError("path must not contain symlinks")
+        if current == current.parent:
+            break
+        current = current.parent
+    return lexical
+
+
 def safe_output(root: Path, output: Path, allow_inside: bool = False) -> Path:
-    root, output = root.resolve(), output.expanduser().resolve()
+    root = root.resolve()
+    output = _reject_symlink_components(output).resolve()
     if not allow_inside and (output == root or root in output.parents):
         raise ValueError("output directory must not be inside the target repository")
     current = output
@@ -111,7 +133,8 @@ def _route_inventory(files, frameworks):
                         "evidence": line.strip()[:300],
                     }
                 )
-    return routes
+    graph = build_code_graph(files)
+    return [enrich_route(route, graph) for route in routes]
 
 
 def _inventory(root, files, walked, frameworks):
@@ -169,7 +192,8 @@ def _inventory(root, files, walked, frameworks):
     categories["deployment_files"] = [
         str(p.relative_to(root))
         for p in root.rglob("*")
-        if p.is_file()
+        if not p.is_symlink()
+        and p.is_file()
         and any(x in p.name.lower() for x in ("docker", "k8s", "deploy", "workflow", "jenkins"))
     ]
     return {
@@ -246,13 +270,25 @@ def run_scan(args) -> int:
     if config.frameworks:
         frameworks = [x for x in frameworks if x in config.frameworks]
     findings = scan(walked.files, config, frameworks[0] if frameworks else None)
-    findings, root_causes = correlate(findings)
     errors = []
+    for spec in getattr(args, "import_result", []) or []:
+        if "=" not in spec:
+            errors.append(f"invalid imported result specification: {spec}; use tool=path")
+            continue
+        tool, result_path = spec.split("=", 1)
+        imported = import_result_file(tool.lower(), Path(result_path), root)
+        findings.extend(imported.findings)
+        errors.extend(imported.errors)
     if not config.disable_external_tools:
         for tool in config.external_tools:
             result = run_local_adapter(tool, root, config.timeout)
             findings.extend(result.findings)
             errors.extend(result.errors)
+    deduplicated: dict[tuple[str, str, int], Finding] = {}
+    for finding in findings:
+        deduplicated[(finding.rule_id, finding.file_path, finding.start_line)] = finding
+    findings = list(deduplicated.values())
+    findings, root_causes = correlate(findings)
     inventory = _inventory(root, walked.files, walked, frameworks)
     routes = _route_inventory(walked.files, frameworks)
     metadata = {
@@ -270,7 +306,9 @@ def run_scan(args) -> int:
         "snippets": config.snippets,
         "repository_execution": False,
         "external_tools": list(config.external_tools),
+        "imported_results": list(getattr(args, "import_result", []) or []),
         "network": "disabled by design",
+        "parser_capabilities": parser_capabilities(),
     }
     write_json(output / "inventory.json", inventory)
     write_json(output / "routes.json", routes)
@@ -493,6 +531,13 @@ def make_parser():
     review.add_argument("--force", action="store_true")
     review.add_argument("--config")
     review.add_argument(
+        "--import-result",
+        action="append",
+        default=[],
+        metavar="TOOL=PATH",
+        help="import a local Semgrep/Gitleaks/Bandit/gosec/FindSecBugs result",
+    )
+    review.add_argument(
         "--current-code-only",
         action="store_true",
         default=True,
@@ -566,6 +611,7 @@ def make_parser():
     scan_p.add_argument("--root-causes-only", action="store_true")
     scan_p.add_argument("--exclude-inventory", action="store_true")
     scan_p.add_argument("--show-review-points", action=argparse.BooleanOptionalAction, default=True)
+    scan_p.add_argument("--import-result", action="append", default=[])
     scan_p.set_defaults(func=run_scan)
     inv = sub.add_parser("inventory", help=argparse.SUPPRESS, description=argparse.SUPPRESS)
     inv.add_argument("repository")
@@ -630,7 +676,7 @@ def run_inventory(args):
 
 def run_report(args):
     findings = json.loads(Path(args.findings).read_text(encoding="utf-8"))
-    output = Path(args.output)
+    output = _reject_symlink_components(Path(args.output)).resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     lines = [
         "# White-box secure coding findings",
@@ -658,7 +704,7 @@ def run_handoff(args):
     source = Path(args.results).resolve()
     if not source.is_dir():
         raise ValueError("results directory does not exist")
-    dest = Path(args.output).resolve()
+    dest = _reject_symlink_components(Path(args.output)).resolve()
     if (dest == source or source in dest.parents) and dest.name != "ai-handoff":
         raise ValueError("handoff output must not be inside the results directory")
     dest.mkdir(parents=True, exist_ok=True)
@@ -760,7 +806,7 @@ def run_sample_unreported(args):
         if str(f.path) not in reported
         and any(k in str(f.path).lower() or k in f.text.lower() for k in keywords)
     ][: args.count]
-    dest = Path(args.output).resolve()
+    dest = _reject_symlink_components(Path(args.output)).resolve()
     dest.mkdir(parents=True, exist_ok=True)
     write_json(
         dest / "negative-sample.json",
@@ -806,14 +852,13 @@ def run_compare(args):
             out.append(
                 f"- `{fid}`: `{old_map[fid].get('classification')}` → `{new_map[fid].get('classification')}`"
             )
-    output = Path(args.output)
+    output = _reject_symlink_components(Path(args.output)).resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text("\n".join(out) + "\n", encoding="utf-8")
     return 0
 
 
 def run_doctor():
-    import importlib.util
     import shutil as _shutil
 
     data = {
@@ -825,10 +870,7 @@ def run_doctor():
         "output_write_permissions": os.access(Path.cwd(), os.W_OK),
         "external_tools_default": False,
         "built_in_rules": (Path(__file__).with_name("rules.yaml")).is_file(),
-        "parser": {
-            "python_ast": True,
-            "tree_sitter": importlib.util.find_spec("tree_sitter") is not None,
-        },
+        "parser": parser_capabilities(),
         "optional_tools": {
             name: _shutil.which(name) is not None
             for name in ("semgrep", "gitleaks", "bandit", "gosec", "findsecbugs")

@@ -83,6 +83,16 @@ The normal `review` command writes a concise, reviewer-first result set:
 
 Advanced compatibility commands can also produce inventory, routes, metadata, SARIF, and a bounded internal-AI handoff package.
 
+Local result files from supported tools can be imported without executing them:
+
+```bash
+whitebox-secure-scan review /path/to/repository \
+  --import-result semgrep=/path/to/semgrep.json \
+  --output ./whitebox-results
+```
+
+Supported import formats include Semgrep, Gitleaks, Bandit, gosec, and FindSecBugs. Imported results retain the external tool and rule IDs and are still review candidates.
+
 ![whitebox-secure-scan workflow](https://raw.githubusercontent.com/Waariss/whitebox-secure-scan/main/docs/assets/whitebox-secure-scan-workflow.svg)
 
 ## What it does—and does not do
@@ -118,6 +128,8 @@ Only scan repositories you are authorized to review.
 - Go
 
 Framework evidence is reported only when it is observable in the repository. Static analysis is intentionally conservative: incomplete flows remain review leads or review points.
+
+When the optional parsing extra is installed, the parser layer can use local Tree-sitter grammars for JavaScript, TypeScript, Java, and Go. Without it, the scanner uses a structured lexical fallback. The code graph is bounded to observable declarations, routes, and calls; it is not complete whole-program interprocedural taint analysis.
 
 ## Typical workflow
 

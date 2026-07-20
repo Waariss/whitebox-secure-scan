@@ -1,5 +1,9 @@
 from pathlib import Path
+import re
 from .repository import SourceFile
+
+
+MAX_MANIFEST_BYTES = 2_000_000
 
 FRAMEWORK_MARKERS = {
     "Django": ["django", "rest_framework"],
@@ -42,12 +46,15 @@ def detect_frameworks(files: list[SourceFile], root: Path) -> list[str]:
         "go.mod",
     ):
         p = root / name
-        if p.exists():
-            text += p.read_text(encoding="utf-8", errors="replace")
+        if p.is_file() and not p.is_symlink() and p.stat().st_size <= MAX_MANIFEST_BYTES:
+            text += p.read_text(encoding="utf-8", errors="replace") + "\n"
     return sorted(
         name
         for name, markers in FRAMEWORK_MARKERS.items()
-        if any(marker in text for marker in markers)
+        if any(
+            re.search(rf"(?i)(?<![A-Za-z0-9_]){re.escape(marker)}(?![A-Za-z0-9_])", text)
+            for marker in markers
+        )
     )
 
 

@@ -1,11 +1,15 @@
 import hashlib
+import os
 import socket
+import sys
 from pathlib import Path
 
 import pytest
 
 from whitebox_secure_scan.cli import main
-from whitebox_secure_scan.repository import walk_repository
+from whitebox_secure_scan.detectors import detect_frameworks
+from whitebox_secure_scan.repository import inventory_manifests, walk_repository
+from whitebox_secure_scan.subprocess_runner import run_local
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -118,3 +122,40 @@ def test_gitignored_test_source_remains_available_for_secret_review(tmp_path: Pa
     )
     result = walk_repository(tmp_path, respect_gitignore=True)
     assert any(file.path.name == "TestCredentials.java" for file in result.files)
+
+
+def test_symlinked_manifest_is_not_read(tmp_path: Path):
+    target = tmp_path / "target"
+    target.mkdir()
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "package.json").write_text('{"dependencies":{"express":"1"}}', encoding="utf-8")
+    (target / "package.json").symlink_to(outside / "package.json")
+    assert inventory_manifests(target) == []
+    assert detect_frameworks([], target) == []
+
+
+def test_framework_detection_uses_bounded_manifest_tokens(tmp_path: Path):
+    (tmp_path / "package.json").write_text(
+        '{"description":"nextdoor expressway"}', encoding="utf-8"
+    )
+    assert detect_frameworks([], tmp_path) == []
+    (tmp_path / "package.json").write_text('{"dependencies":{"express":"1"}}', encoding="utf-8")
+    assert "Express" in detect_frameworks([], tmp_path)
+    (tmp_path / "package.json").write_bytes(b"x" * 2_000_001)
+    assert detect_frameworks([], tmp_path) == []
+
+
+def test_external_tool_output_is_bounded(tmp_path: Path):
+    result = run_local(
+        [
+            sys.executable,
+            "-c",
+            "print('x' * 200000); print('y' * 200000, file=__import__('sys').stderr)",
+        ],
+        cwd=tmp_path,
+        timeout=5,
+        env={"PATH": os.environ.get("PATH", "")},
+    )
+    assert len(result.stdout) <= 65536
+    assert len(result.stderr) <= 65536

@@ -78,10 +78,11 @@ def walk_repository(
     root = root.resolve()
     excluded = DEFAULT_EXCLUDED | (excludes or set())
     gitignore = set()
-    if respect_gitignore and (root / ".gitignore").is_file():
+    gitignore_path = root / ".gitignore"
+    if respect_gitignore and gitignore_path.is_file() and not gitignore_path.is_symlink():
         gitignore = {
             line.strip().strip("/")
-            for line in (root / ".gitignore").read_text(errors="replace").splitlines()
+            for line in gitignore_path.read_text(errors="replace").splitlines()
             if line.strip() and not line.startswith("#")
         }
     result = WalkResult()
@@ -153,5 +154,7 @@ def inventory_manifests(root: Path) -> list[str]:
         "deployment.yaml",
     }
     return sorted(
-        str(p.relative_to(root)) for p in root.rglob("*") if p.is_file() and p.name in names
+        str(p.relative_to(root))
+        for p in root.rglob("*")
+        if not p.is_symlink() and p.is_file() and p.name in names
     )

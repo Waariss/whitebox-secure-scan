@@ -1,8 +1,12 @@
 import json
 from pathlib import Path
+import textwrap
+from whitebox_secure_scan.adapters import import_result_file
 from whitebox_secure_scan.analyzer import scan
+from whitebox_secure_scan.code_graph import build_code_graph
 from whitebox_secure_scan.cli import make_parser
 from whitebox_secure_scan.config import ScanConfig
+from whitebox_secure_scan.parsers import parse, parser_capabilities
 from whitebox_secure_scan.repository import walk_repository
 from whitebox_secure_scan.reporting import markdown, sarif
 from whitebox_secure_scan.rules import load_rules, validate_rules
@@ -16,6 +20,71 @@ def test_cli_help_and_subcommands():
     parser = make_parser()
     assert "scan" in parser.format_help()
     assert parser.parse_args(["doctor"]).command == "doctor"
+
+
+def test_parser_capability_and_lexical_fallback(tmp_path: Path):
+    source = tmp_path / "sample.java"
+    source.write_text("class Sample { void run() {} }", encoding="utf-8")
+    file = walk_repository(tmp_path).files[0]
+    result = parse(file)
+    assert result.parser_used in {"lexical-fallback", "tree-sitter.java"}
+    capabilities = parser_capabilities()
+    assert capabilities["python_ast"] is True
+    assert "javascript" in capabilities["languages"]
+
+
+def test_bounded_route_graph_adds_handler_and_callees(tmp_path: Path):
+    source = tmp_path / "app.js"
+    source.write_text(
+        textwrap.dedent(
+            """
+            function listUsers(req, res) {
+                loadUsers();
+                res.json([]);
+            }
+            app.get('/users', listUsers);
+            """
+        ),
+        encoding="utf-8",
+    )
+    graph = build_code_graph(walk_repository(tmp_path).files)
+    route = graph.routes[0]
+    assert route["method"] == "GET"
+    assert route["path"] == "/users"
+    assert route["handler"] == "listUsers"
+    assert "loadUsers" in graph.symbols[0].calls
+
+
+def test_semgrep_result_import_is_normalized_and_redacted(tmp_path: Path):
+    result = tmp_path / "semgrep.json"
+    result.write_text(
+        json.dumps(
+            {
+                "results": [
+                    {
+                        "check_id": "javascript.lang.security.detect-eval",
+                        "path": "src/app.js",
+                        "start": {"line": 12},
+                        "extra": {
+                            "message": "dynamic evaluation with token=synthetic-token-value-12345",
+                            "severity": "ERROR",
+                            "metadata": {"confidence": "HIGH", "cwe": ["CWE-95"]},
+                        },
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    imported = import_result_file("semgrep", result, tmp_path)
+    assert not imported.errors
+    assert len(imported.findings) == 1
+    finding = imported.findings[0]
+    assert finding.external_tool == "semgrep"
+    assert finding.external_rule_id == "javascript.lang.security.detect-eval"
+    assert finding.file_path == "src/app.js"
+    assert finding.start_line == 12
+    assert "synthetic-token-value-12345" not in finding.description
 
 
 def test_synthetic_vulnerable_and_safe_cases():
@@ -66,6 +135,7 @@ def test_markdown_includes_reviewer_guidance():
     assert "**Why raised:**" in report
     assert "**Observed controls:**" in report
     assert "**Reviewer action:**" in report
+    assert "```text" in report
 
 
 def test_rules_and_malformed_source(tmp_path: Path):
