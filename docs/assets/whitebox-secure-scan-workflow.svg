@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="480" viewBox="0 0 1280 480" role="img" aria-labelledby="title desc">
+  <title id="title">whitebox-secure-scan local review workflow</title>
+  <desc id="desc">A repository is reviewed locally and produces concise artifacts for human verification.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#071b36"/><stop offset="1" stop-color="#0b2847"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#63d9d1"/></marker>
+  </defs>
+  <rect width="1280" height="480" rx="24" fill="url(#bg)"/>
+  <g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">
+    <g fill="none" stroke="#63d9d1" stroke-width="4" marker-end="url(#arrow)"><path d="M300 190h110"/><path d="M740 190h110"/></g>
+    <g stroke="#3b83c5" stroke-width="2">
+      <rect x="54" y="100" width="246" height="180" rx="18" fill="#102f52"/>
+      <rect x="410" y="78" width="330" height="224" rx="18" fill="#102f52"/>
+      <rect x="850" y="52" width="376" height="276" rx="18" fill="#123b4b" stroke="#63d9d1"/>
+    </g>
+    <g fill="#63d9d1" font-size="22" font-weight="700">
+      <text x="86" y="144">Target repository</text>
+      <text x="442" y="122">Local review</text>
+      <text x="882" y="96">Concise artifacts</text>
+    </g>
+    <g fill="#b9cbe0" font-size="16">
+      <text x="86" y="178">Read-only source</text><text x="86" y="204">No execution</text><text x="86" y="230">No upload</text>
+      <text x="442" y="158">whitebox-secure-scan review</text><text x="442" y="190">Offline analysis</text><text x="442" y="222">Evidence and root causes</text><text x="442" y="254">Review leads, not confirmations</text>
+    </g>
+    <g fill="#dcecf8" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="16">
+      <text x="882" y="138">SUMMARY.md</text><text x="882" y="170">report.md</text><text x="882" y="202">findings.json</text><text x="882" y="234">root-causes.json</text><text x="882" y="266">review-points.json</text>
+    </g>
+    <text x="640" y="404" text-anchor="middle" fill="#b9cbe0" font-size="18">Inspect the evidence, verify the complete flow, then decide what is reportable.</text>
+  </g>
+</svg>

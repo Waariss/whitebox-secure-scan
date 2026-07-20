@@ -1,31 +1,164 @@
 # whitebox-secure-scan
 
-`whitebox-secure-scan` is an offline, read-only white-box secure-code triage tool for penetration testers. It identifies high-signal security review leads, records precise file and line evidence, groups related instances into root causes, and provides reviewer guidance.
+[![PyPI](https://img.shields.io/pypi/v/whitebox-secure-scan?logo=pypi&logoColor=white)](https://pypi.org/project/whitebox-secure-scan/)
+[![Python](https://img.shields.io/pypi/pyversions/whitebox-secure-scan)](https://pypi.org/project/whitebox-secure-scan/)
+[![Tests](https://github.com/Waariss/whitebox-secure-scan/actions/workflows/test.yml/badge.svg)](https://github.com/Waariss/whitebox-secure-scan/actions/workflows/test.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/Waariss/whitebox-secure-scan/blob/main/LICENSE)
 
-It is designed to accelerate source-code review not to replace a penetration tester, confirm exploitability automatically, or generate a final pentest report. Every candidate requires independent verification by an authorized security engineer.
+![whitebox-secure-scan banner](https://raw.githubusercontent.com/Waariss/whitebox-secure-scan/main/docs/assets/whitebox-secure-scan-banner.svg)
 
-It scans Python 3.11+, JavaScript/TypeScript, Java, and Go locally. It does not import, execute, upload, or modify target code and does not contact package registries or external AI services during scans.
+`whitebox-secure-scan` is a local, offline white-box secure-code triage tool for penetration testers. It helps you filter a large codebase into explainable review leads, precise file and line evidence, grouped root causes, and reviewer guidance.
 
-## Install and run
+It is a triage aid—not a final penetration-test report and not an automatic vulnerability confirmer. Every candidate must be independently verified by an authorized security engineer.
+
+The analysis stays local: source enters a bounded review pipeline, evidence is grouped for a human reviewer, and no source is sent to an external service.
+
+![Local code review and evidence grouping](https://raw.githubusercontent.com/Waariss/whitebox-secure-scan/main/docs/assets/whitebox-secure-scan-overview.png)
+
+## Quick start
+
+Run the latest published package without installing it globally:
 
 ```bash
-python3 -m venv .venv && . .venv/bin/activate
-python -m pip install -e ".[dev]"
-whitebox-secure-scan review /path/to/repository --output ./whitebox-results
+uvx whitebox-secure-scan@latest version
+uvx whitebox-secure-scan@latest review /path/to/repository \
+  --output ./whitebox-results
 ```
 
-The normal `review` workflow keeps only the useful review outputs: `SUMMARY.md`, `report.md`, `findings.json`, `root-causes.json`, and `review-points.json`. Detailed inventory, routes, metadata, SARIF, and handoff packaging remain available through advanced compatibility commands. Results are review leads, not automatic vulnerability confirmations.
+Keep the output directory outside the target repository. The scanner reads target source locally, does not execute it, and does not modify it.
 
-## Scope
+## Installation
 
-The engine combines Python AST parsing, structured lexical analysis for the other supported languages, framework evidence detection, conservative source/sink heuristics, secret redaction, confidence scoring, duplicate suppression, route inventory, normalized reporting, safety-bounded walking, and local adapter interfaces. Findings are review leads or review points, not confirmed vulnerabilities.
+### Run with `uvx` — recommended
 
-Java uses a structured lexical fallback that removes comments/Javadocs, masks string literals for API matching, and requires observable method or constructor invocation. It distinguishes code surfaces such as production, test, utility, demo, generated, and configuration. Findings include `verdict_candidate`, `code_surface`, `proof_gaps`, `counterevidence`, parser metadata, and source/sink diagnostics.
+`uvx` runs the published package in an isolated environment and does not require a permanent installation.
 
-JavaScript and TypeScript use the same conservative structured-lexical approach when an optional AST parser is unavailable. Upload findings require both an uploaded-file source and a write/storage sink; blob responses, report downloads, browser exports, API wrappers, identifiers, comments, and UI labels are not upload or execution evidence. Dynamic execution requires an invocation of `eval`, `Function`, `vm`, or a `child_process` API. Literal-secret findings require a credential-shaped value, while environment-variable lookups and labels such as `Change Password` are excluded.
+```bash
+uvx whitebox-secure-scan@latest version
+uvx whitebox-secure-scan@latest --help
+uvx whitebox-secure-scan@latest review /path/to/repository \
+  --output ./whitebox-results
+uvx whitebox-secure-scan@1.0.1 version
+```
 
-The normal command is `whitebox-secure-scan review /path/to/repository`. Other commands are advanced support utilities. See [the compact technical reference](docs/REFERENCE.md).
+### Install with `pip`
 
-Triage commands are `sample-unreported` for deterministic negative-review candidates and `compare` for old/new result comparison. Use `--production-only` for production results, `--include-test-code` to inspect ordinary test code, `--include-test-secrets` to retain test-source secrets, and `--root-causes-only` when consuming grouped results.
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install whitebox-secure-scan
+whitebox-secure-scan version
+whitebox-secure-scan review /path/to/repository \
+  --output ./whitebox-results
+```
 
-The operational workflow is: scan to an output directory outside the target, inspect the concise summary and evidence, optionally send the bounded handoff package to an approved internal verifier, then manually validate candidates. Default controls are offline operation, redaction, no repository execution, no external tools, bounded file reads, no symlink following, and no writes to the target repository.
+Upgrade an existing installation with:
+
+```bash
+python -m pip install --upgrade whitebox-secure-scan
+```
+
+The package supports Python 3.11 and newer. `uvx` and `pip` use the published PyPI package; no repository checkout is required for normal use.
+
+### Optional parsing dependencies
+
+The core scanner works without optional parsers. Install the local parsing extras when you want the additional parser support:
+
+```bash
+python -m pip install "whitebox-secure-scan[parsing]"
+```
+
+
+## What you get
+
+The normal `review` command writes a concise, reviewer-first result set:
+
+| File | Purpose |
+| --- | --- |
+| `SUMMARY.md` | Fast overview of root causes, locations, and scope |
+| `report.md` | Detailed evidence and verification guidance |
+| `findings.json` | Normalized finding instances for automation |
+| `root-causes.json` | Related instances grouped for efficient review |
+| `review-points.json` | Lower-confidence items that need context |
+
+Advanced compatibility commands can also produce inventory, routes, metadata, SARIF, and a bounded internal-AI handoff package.
+
+![whitebox-secure-scan workflow](https://raw.githubusercontent.com/Waariss/whitebox-secure-scan/main/docs/assets/whitebox-secure-scan-workflow.svg)
+
+## What it does—and does not do
+
+| It does | It does not |
+| --- | --- |
+| Scan Python, JavaScript/TypeScript, Java, and Go source locally | Execute application code, tests, builds, migrations, or package scripts |
+| Identify security review leads and review points | Claim that a finding is exploitable or confirmed |
+| Preserve file, line, source, sink, and proof-gap context | Replace manual code review or a penetration tester |
+| Group related evidence into root causes | Upload source, findings, telemetry, or analytics |
+| Work offline by default | Call external AI services or download rules during a scan |
+
+## Safety boundaries
+
+The scanner is designed for controlled white-box review:
+
+- Offline operation is enabled by default.
+- Target repositories are treated as read-only.
+- Repository code and commands are never executed.
+- External scanners are disabled unless explicitly enabled and already installed locally.
+- Output paths are safety-checked and should be outside the target repository.
+- Symlinks that escape the target are not followed.
+- Secrets are redacted by default and snippets are bounded.
+- No source code or scan results are sent to a cloud service.
+
+Only scan repositories you are authorized to review.
+
+## Supported languages
+
+- Python
+- JavaScript and TypeScript, including common Node.js and frontend patterns
+- Java, including common Spring-oriented patterns
+- Go
+
+Framework evidence is reported only when it is observable in the repository. Static analysis is intentionally conservative: incomplete flows remain review leads or review points.
+
+## Typical workflow
+
+```text
+Scan locally
+    ↓
+Read SUMMARY.md and grouped root causes
+    ↓
+Inspect the referenced file and line
+    ↓
+Verify the complete flow manually
+    ↓
+Write the approved security finding, if confirmed
+```
+
+## Development installation
+
+Use this section only when contributing to the project or running its synthetic test suite:
+
+```bash
+git clone https://github.com/Waariss/whitebox-secure-scan.git
+cd whitebox-secure-scan
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
+pytest -q
+ruff check .
+ruff format --check .
+mypy src
+```
+
+Tests use synthetic fixtures. Do not point the test suite or examples at repositories you do not own or have permission to review. See [CONTRIBUTING.md](https://github.com/Waariss/whitebox-secure-scan/blob/main/CONTRIBUTING.md) and the [technical reference](https://github.com/Waariss/whitebox-secure-scan/blob/main/docs/REFERENCE.md).
+
+## Documentation and support
+
+- [Technical reference](https://github.com/Waariss/whitebox-secure-scan/blob/main/docs/REFERENCE.md)
+- [Security boundaries](https://github.com/Waariss/whitebox-secure-scan/blob/main/SECURITY.md)
+- [Contributing](https://github.com/Waariss/whitebox-secure-scan/blob/main/CONTRIBUTING.md)
+- [Report a security issue](https://github.com/Waariss/whitebox-secure-scan/blob/main/SECURITY.md)
+- [GitHub issues](https://github.com/Waariss/whitebox-secure-scan/issues)
+
+## License
+
+Apache License 2.0. See [LICENSE](https://github.com/Waariss/whitebox-secure-scan/blob/main/LICENSE).

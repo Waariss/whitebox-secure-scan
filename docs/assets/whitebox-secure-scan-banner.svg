@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
+  <title id="title">whitebox-secure-scan</title>
+  <desc id="desc">Offline, read-only white-box secure-code triage for penetration testers.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#06172f"/>
+      <stop offset="1" stop-color="#0b304b"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#48d8d0"/>
+      <stop offset="1" stop-color="#85e3b1"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#020914" flood-opacity=".45"/>
+    </filter>
+  </defs>
+  <rect width="1280" height="640" rx="28" fill="url(#background)"/>
+  <path d="M0 510C230 425 330 580 540 500S860 360 1280 465V640H0Z" fill="#071e38" opacity=".78"/>
+  <g opacity=".23" stroke="#5d9bca" fill="none">
+    <path d="M760 74h405M760 96h270M760 118h350"/>
+    <path d="M800 166h350M800 188h240M800 210h300"/>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="770" y="250" width="270" height="170" rx="18" fill="#102f51" stroke="#4a91d2" stroke-width="3"/>
+    <rect x="802" y="286" width="166" height="12" rx="6" fill="#54cdd0"/>
+    <rect x="802" y="316" width="198" height="10" rx="5" fill="#2f73b9"/>
+    <rect x="802" y="346" width="94" height="12" rx="6" fill="#83e3b1"/>
+    <rect x="910" y="346" width="90" height="12" rx="6" fill="#2f73b9"/>
+    <circle cx="1104" cy="333" r="82" fill="#0b2746" stroke="#5ddbd1" stroke-width="7"/>
+    <path d="M1104 276l44 18v35c0 38-25 57-44 67-19-10-44-29-44-67v-35Z" fill="#163b5c" stroke="#85e3b1" stroke-width="5"/>
+    <path d="M1104 300v51M1080 325h48" stroke="#85e3b1" stroke-width="7" stroke-linecap="round"/>
+  </g>
+  <g fill="none" stroke="url(#accent)" stroke-width="4" stroke-linecap="round">
+    <path d="M120 192h250c64 0 64 128 128 128h164"/>
+    <path d="M120 262h182c64 0 64 58 128 58h232"/>
+    <path d="M120 332h124c64 0 64-12 128-12h290"/>
+  </g>
+  <g fill="#9fe8e0">
+    <circle cx="120" cy="192" r="7"/><circle cx="120" cy="262" r="7"/><circle cx="120" cy="332" r="7"/>
+    <circle cx="660" cy="320" r="8"/>
+  </g>
+  <g transform="translate(560 242)" filter="url(#shadow)">
+    <circle cx="0" cy="0" r="94" fill="#102d50" stroke="#b4cce6" stroke-width="8"/>
+    <path d="m70 70 84 84" stroke="#4777ae" stroke-width="28" stroke-linecap="round"/>
+    <path d="M-38-28h70M-38 0h48M-38 28h70" stroke="#61d8d0" stroke-width="10" stroke-linecap="round"/>
+    <path d="M-38 52h35" stroke="#85e3b1" stroke-width="10" stroke-linecap="round"/>
+  </g>
+  <g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" fill="#f3f8ff">
+    <text x="92" y="472" font-size="56" font-weight="700" letter-spacing="-1">whitebox-secure-scan</text>
+    <text x="96" y="524" font-size="23" fill="#b9cbe0">Offline, read-only white-box secure-code triage for penetration testers</text>
+    <rect x="96" y="558" width="360" height="4" rx="2" fill="url(#accent)"/>
+  </g>
+</svg>
