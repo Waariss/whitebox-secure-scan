@@ -38,7 +38,7 @@ uvx whitebox-secure-scan@latest version
 uvx whitebox-secure-scan@latest --help
 uvx whitebox-secure-scan@latest review /path/to/repository \
   --output ./whitebox-results
-uvx whitebox-secure-scan@1.0.1 version
+uvx whitebox-secure-scan@1.1.0 version
 ```
 
 ### Install with `pip`
@@ -62,8 +62,7 @@ The package supports Python 3.11 and newer. `uvx` and `pip` use the published Py
 
 ### Install with Homebrew — macOS
 
-The Formula is prepared for `Waariss/homebrew-tap` and will be available after
-that Formula is merged and its public installation is validated:
+The Formula is available from `Waariss/homebrew-tap`:
 
 ```bash
 brew install waariss/tap/whitebox-secure-scan
